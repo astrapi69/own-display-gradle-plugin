@@ -1,0 +1,87 @@
+// Publishing to Maven Central through the Central Portal, as resourcebundle-core and crypt-api do it
+// (nmcp). java-gradle-plugin creates two publications: the plugin itself (pluginMaven) and the
+// marker that lets a build find it by its id (ownDisplayPluginMarkerMaven). Central validates every
+// POM it receives, so both carry the full metadata, and both are signed.
+def releaseVersion = !version.endsWith("SNAPSHOT")
+def repositoryUrl = "$projectScmProviderUrl$projectHolderUsername/$rootProject.name"
+def scmUrl = "scm:git:git@$projectScmProviderDomain:$projectHolderUsername/${rootProject.name}.git"
+
+publishing {
+    publications.withType(MavenPublication).configureEach {
+        pom {
+            name = "$rootProject.name"
+            description = "$projectDescription"
+            url = repositoryUrl
+            inceptionYear = "$projectInceptionYear"
+            organization {
+                name = "$projectOrganizationName"
+                url = "$projectOrganizationUrl"
+            }
+            issueManagement {
+                system = "GitHub"
+                url = "$repositoryUrl/issues"
+            }
+            licenses {
+                license {
+                    name = "$projectLicenseName"
+                    url = "$projectLicenseUrl"
+                    distribution = "repo"
+                }
+            }
+            developers {
+                developer {
+                    id = "$projectHolderUsername"
+                    name = "$projectLeaderName"
+                }
+            }
+            scm {
+                connection = scmUrl
+                developerConnection = scmUrl
+                url = repositoryUrl
+            }
+        }
+    }
+}
+
+nmcp {
+    publishAllPublicationsToCentralPortal {
+        // a Central Portal user token (central.sonatype.com, Account -> Generate User Token)
+        username = System.getenv("CENTRAL_PORTAL_TOKEN_USERNAME") ?: ""
+        password = System.getenv("CENTRAL_PORTAL_TOKEN_PASSWORD") ?: ""
+        publishingType = "USER_MANAGED"
+    }
+}
+
+// Signing follows the key, not the version, as in resourcebundle-core: a snapshot with a key is
+// signed, so a manual snapshot publish rehearses the signature too; a local build without a key
+// signs nothing; a release without a key is refused rather than published unsigned
+def signingKey = System.getenv("GPG_PRIVATE_KEY")
+def signingPassphrase = System.getenv("GPG_PASSPHRASE")
+def signingKeyId = System.getenv("GPG_KEY_ID")
+def hasInMemoryKey = signingKey && signingPassphrase
+def hasLocalKey = ["signing.keyId", "signing.gnupg.keyName", "signing.secretKeyRingFile"]
+    .any { project.hasProperty(it) }
+
+signing {
+    if (hasInMemoryKey) {
+        if (signingKeyId) {
+            useInMemoryPgpKeys(signingKeyId, signingKey, signingPassphrase)
+        } else {
+            useInMemoryPgpKeys(signingKey, signingPassphrase)
+        }
+        sign publishing.publications
+    } else if (hasLocalKey) {
+        useGpgCmd()
+        sign publishing.publications
+    }
+}
+
+tasks.matching { it.name.startsWith("nmcpPublishAllPublicationsToCentralPortal") }.configureEach {
+    doFirst {
+        if (releaseVersion && !hasInMemoryKey && !hasLocalKey) {
+            throw new GradleException("Refusing to publish ${project.version} unsigned. "
+                + "Set GPG_PRIVATE_KEY and GPG_PASSPHRASE, or a local signing.keyId / "
+                + "signing.gnupg.keyName / signing.secretKeyRingFile property.")
+        }
+    }
+}

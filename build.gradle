@@ -1,0 +1,71 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'maven-publish'
+    id 'signing'
+    alias(libs.plugins.nmcp.gradle.plugin)
+    alias(libs.plugins.spotless.plugin.gradle)
+}
+
+group = "$groupPackage" as Object
+version = "$projectVersion" as Object
+description = "$projectDescription"
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of("$projectSourceCompatibility")
+    }
+    withSourcesJar()
+    withJavadocJar()
+}
+
+tasks.withType(JavaCompile).configureEach {
+    options.encoding = "UTF-8"
+}
+
+dependencies {
+    testImplementation libs.junit.jupiter
+    testRuntimeOnly libs.junit.platform.launcher
+}
+
+gradlePlugin {
+    website = "$projectScmProviderUrl$projectHolderUsername/$rootProject.name"
+    vcsUrl = "$projectScmProviderUrl$projectHolderUsername/${rootProject.name}.git"
+    plugins {
+        ownDisplay {
+            id = 'io.github.astrapi69.own-display'
+            implementationClass = 'io.github.astrapi69.own.display.OwnDisplayPlugin'
+            displayName = 'own-display'
+            description = "$projectDescription"
+        }
+    }
+}
+
+tasks.withType(Test).configureEach {
+    useJUnitPlatform()
+    // The tests of this plugin open no window. They decide the DISPLAY of every process they start,
+    // and none of them inherits the one this build was started with, which on a desktop is the
+    // person's real screen (astrapi69/mystic-crypt-ui#504)
+    environment.remove('DISPLAY')
+    systemProperty 'functionalTestGradleVersions', functionalTestGradleVersions
+    testLogging {
+        events "failed"
+        exceptionFormat "full"
+    }
+}
+
+jar {
+    manifest {
+        attributes(
+            "Implementation-Title": "$groupPackage.$rootProject.name",
+            "Implementation-Version": project.version,
+            "Implementation-Vendor": "$projectLeaderName"
+        )
+    }
+}
+
+apply from: "gradle/formatting.gradle"
+apply from: "gradle/publishing.gradle"
