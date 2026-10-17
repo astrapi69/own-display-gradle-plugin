@@ -89,7 +89,7 @@ public abstract class OwnDisplay implements BuildService<OwnDisplay.Parameters>,
 	 *
 	 * @return the display, such as {@code :437}
 	 * @throws GradleException
-	 *             when the harness hands out no display, or has ended since it did
+	 *             when the harness hands out no display, or has stopped the run since it did
 	 */
 	public synchronized String display()
 	{
@@ -97,13 +97,17 @@ public abstract class OwnDisplay implements BuildService<OwnDisplay.Parameters>,
 		{
 			display = borrow();
 		}
-		else if (!harness.isAlive())
+		else if (!harness.isAlive() || stoppedLine().isPresent())
 		{
-			throw new GradleException(
-				"No display for the tests: the own-display harness has ended, " + "with exit "
-					+ harness.exitValue() + ", and its display with it "
-					+ "(astrapi69/mystic-crypt-ui#597). Its output, from " + log() + ":\n"
-					+ logText());
+			// not only once the harness has ended: it says why it stops a run before it stops
+			// anything, and is still alive for a moment while it takes the display down
+			// (astrapi69/mystic-crypt-ui#600)
+			String state = harness.isAlive()
+				? "is taking its display down"
+				: "has ended, with exit " + harness.exitValue();
+			throw new GradleException("No display for the tests: the own-display harness " + state
+				+ " (astrapi69/mystic-crypt-ui#597, #600). Its output, from " + log() + ":\n"
+				+ logText());
 		}
 		return display;
 	}
