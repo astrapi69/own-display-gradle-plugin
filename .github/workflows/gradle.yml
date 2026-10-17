@@ -1,0 +1,47 @@
+# Builds the plugin and runs every test of it on a runner that has no display at all: the harness's
+# counter-runs start Xvfb and fluxbox themselves, and the functional tests run consumer builds whose
+# test tasks get a display from the plugin, on every Gradle version in functionalTestGradleVersions.
+
+name: Java CI with Gradle
+
+on:
+  push:
+    branches: [ master, develop ]
+  pull_request:
+    branches: [ master, develop ]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout sources
+        uses: actions/checkout@v7
+      - name: Setup Java
+        uses: actions/setup-java@v5
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v6
+      - name: Install what the harness needs
+        # Xvfb and fluxbox are what it starts; wmctrl, x11-utils (xdpyinfo) and iproute2 (ss) are what
+        # it measures them with (astrapi69/mystic-crypt-ui#322, #597)
+        run: |
+          sudo apt-get update || echo "apt-get update reported errors; continuing to the install"
+          sudo apt-get install -y xvfb fluxbox wmctrl x11-utils iproute2
+      - name: Execute Gradle build
+        run: ./gradlew build
+      - name: Upload the test results
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: |
+            build/reports/tests/test
+            build/test-results/test
+          retention-days: 14
