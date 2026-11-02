@@ -5,6 +5,9 @@ Version 1.0 (unreleased)
 -------------
 
 ADDED:
+- every test JVM gets `NO_AT_BRIDGE=1`, so the GTK modules a desktop session sets (`GTK_MODULES=gail:atk-bridge`)
+  do not connect it to the accessibility bus and print AT-SPI warnings past the test results, as in
+  astrapi69/mystic-crypt-ui#695 (#9)
 - every test task runs on a display of the build's own: an Xvfb on a random free number from 100 to 999 with
   fluxbox answering on it, used only when the kernel names that Xvfb as the listener on the display's socket.
   Every test JVM's `DISPLAY` is read from `/proc` while it runs, and a JVM on another display, or on none without

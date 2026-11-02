@@ -67,6 +67,11 @@ public class OwnDisplayPlugin implements Plugin<Project>
 					project.getRootProject().getLayout().getBuildDirectory().dir(WORK_DIRECTORY));
 			});
 		project.getTasks().withType(Test.class).configureEach(test -> {
+			// A desktop session sets GTK_MODULES=gail:atk-bridge, so every test JVM that loads GTK
+			// connects to the accessibility bus and, where that bus is not there, prints an AT-SPI
+			// dbind-WARNING on its native stderr, past the test results. The tests drive the UI
+			// through the AWT robot, not through that bus (#9, astrapi69/mystic-crypt-ui#695)
+			test.environment("NO_AT_BRIDGE", "1");
 			test.usesService(ownDisplay);
 			test.doFirst(new GiveTheTestTaskADisplay(ownDisplay));
 		});

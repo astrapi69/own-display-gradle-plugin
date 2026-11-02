@@ -45,6 +45,7 @@ import org.gradle.testkit.runner.TaskOutcome;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.io.TempDir;
 import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 /**
@@ -93,6 +94,7 @@ class OwnDisplayPluginFunctionalTest
 		        Properties seen = new Properties();
 		        seen.setProperty("DISPLAY", System.getenv().getOrDefault("DISPLAY", ""));
 		        seen.setProperty("E2E_HARNESS_DISPLAY", System.getenv().getOrDefault("E2E_HARNESS_DISPLAY", ""));
+		        seen.setProperty("NO_AT_BRIDGE", System.getenv().getOrDefault("NO_AT_BRIDGE", ""));
 		        try (Writer writer = new FileWriter(System.getProperty("seen"))) {
 		            seen.store(writer, null);
 		        }
@@ -145,6 +147,26 @@ class OwnDisplayPluginFunctionalTest
 		assertTrue(log.matches("(?s).*test JVM pid \\d+ runs on " + display + "\\b.*"), log);
 		assertTrue(result.getOutput().contains("test: tests run on display " + display),
 			result.getOutput());
+	}
+
+	@ParameterizedTest(name = "Gradle {0}, {1}")
+	@MethodSource("gradleVersionsWithAndWithoutADisplay")
+	@DisplayName("a test JVM keeps away from the accessibility bus a desktop session asks for: NO_AT_BRIDGE=1 (#9)")
+	void aTestJvm_getsNoAtBridge_inABuildStartedWithTheDesktopsGtkModules(String gradleVersion,
+		String kind, @TempDir File project) throws IOException
+	{
+		consumer(project,
+			kind.equals("headless") ? "test { systemProperty 'java.awt.headless', 'true' }" : "");
+
+		BuildResult result = runner(project, gradleVersion, "test").build();
+
+		assertEquals("1", seen(project, "test").getProperty("NO_AT_BRIDGE"), result.getOutput());
+	}
+
+	static Stream<Arguments> gradleVersionsWithAndWithoutADisplay()
+	{
+		return gradleVersions().flatMap(version -> Stream
+			.of(Arguments.of(version, "on its own display"), Arguments.of(version, "headless")));
 	}
 
 	@ParameterizedTest(name = "Gradle {0}")
@@ -210,8 +232,9 @@ class OwnDisplayPluginFunctionalTest
 	}
 
 	/**
-	 * A runner for the consumer, started with {@code DISPLAY=:0} and nothing else of the display's:
-	 * no opt-in for the current display, no Xvfb pid of an outer harness
+	 * A runner for the consumer, started as from a desktop session: {@code DISPLAY=:0} and
+	 * {@code GTK_MODULES=gail:atk-bridge}, but nothing else of the display's: no opt-in for the
+	 * current display, no Xvfb pid of an outer harness, no {@code NO_AT_BRIDGE}
 	 */
 	private static GradleRunner runner(File project, String gradleVersion, String... arguments)
 	{
@@ -219,6 +242,10 @@ class OwnDisplayPluginFunctionalTest
 		environment.remove("E2E_USE_CURRENT_DISPLAY");
 		environment.remove("E2E_HARNESS_XVFB_PID");
 		environment.put("DISPLAY", ":0");
+		// what a desktop session sets, so the plugin's NO_AT_BRIDGE is what keeps the bridge away
+		// (#9)
+		environment.put("GTK_MODULES", "gail:atk-bridge");
+		environment.remove("NO_AT_BRIDGE");
 		return GradleRunner.create().withProjectDir(project).withGradleVersion(gradleVersion)
 			.withPluginClasspath().withEnvironment(environment).withArguments(arguments)
 			.forwardOutput();
