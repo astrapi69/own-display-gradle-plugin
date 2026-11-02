@@ -39,7 +39,8 @@ gradlePlugin {
             id = 'io.github.astrapi69.own-display'
             implementationClass = 'io.github.astrapi69.own.display.OwnDisplayPlugin'
             displayName = 'own-display'
-            description = "$projectDescription"
+            description = "Runs every test task on a display of the build's own: an Xvfb with a " +
+                "window manager, measured, never the desktop's"
         }
         testResultsComplete {
             id = 'io.github.astrapi69.test-results-complete'
@@ -59,6 +60,11 @@ tasks.withType(Test).configureEach {
     // person's real screen (astrapi69/mystic-crypt-ui#504)
     environment.remove('DISPLAY')
     systemProperty 'functionalTestGradleVersions', functionalTestGradleVersions
+    // PublicationPomFunctionalTest generates the POMs from a copy of this build's own files (#14):
+    // they are what it checks, so a change to them runs it again
+    inputs.files('settings.gradle', 'build.gradle', 'gradle.properties', 'gradle')
+        .withPropertyName('buildFilesOfThePublications')
+        .withPathSensitivity(PathSensitivity.RELATIVE)
     testLogging {
         events "failed"
         exceptionFormat "full"

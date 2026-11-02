@@ -22,3 +22,8 @@ ADDED:
   Every test JVM's `DISPLAY` is read from `/proc` while it runs, and a JVM on another display, or on none without
   being headless, stops the run. A headless test task gets no display at all. The harness and its tests come from
   mystic-crypt-ui as of astrapi69/mystic-crypt-ui#597 (#1)
+
+FIXED:
+- each plugin marker's POM carries the display name and the description of its own plugin; both markers had
+  carried the artifact's name and the display check's description, the marker of `test-results-complete`
+  included. The artifact's description names both plugins (#14)
