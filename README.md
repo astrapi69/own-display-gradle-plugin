@@ -7,6 +7,10 @@ It comes out of [mystic-crypt-ui](https://github.com/astrapi69/mystic-crypt-ui),
 the inherited `DISPLAY` clicked and typed on a person's real screen (mystic-crypt-ui#504), and is
 shared by every repository of the family whose tests open windows (mystic-crypt-ui#599).
 
+The same artifact has a second plugin ID, `io.github.astrapi69.test-results-complete`, which
+checks that every test class of a test task left a result. It needs no display and can be applied
+alone, or next to `own-display` (see [Every test class leaves a result](#every-test-class-leaves-a-result)).
+
 ## Use
 
 ```groovy
@@ -66,6 +70,61 @@ missing one instead of running the tests on the desktop.
 
 `E2E_USE_CURRENT_DISPLAY=1` runs the tests on the display the build was started with, for a run
 that is meant to be watched. Nothing sets it by default.
+
+## Every test class leaves a result
+
+```groovy
+plugins {
+    id 'io.github.astrapi69.test-results-complete' version '1.0'
+}
+```
+
+The `pluginManagement` block above applies to it as well. Nothing else is configured, and every
+`Test` task of the build is checked.
+
+A test that ends the test JVM, with `System.exit(0)` as awt-extensions' `CloseWindow` does when
+its window is closed, leaves every class after it without a result, and Gradle still reports the
+task green, because the worker exited with 0 (swing-components#34, mystic-crypt-ui#288). So after
+each test task:
+
+- **Every test class must have left a result.** A test class is a concrete compiled class of the
+  task's classes directories (not abstract, not an interface, no `$` in its name), narrowed by the
+  task's include and exclude patterns, that refers to a JUnit Jupiter (`Test`, `ParameterizedTest`,
+  `TestFactory`, `RepeatedTest`, `TestTemplate`), JUnit 4 or TestNG test annotation. Its result is
+  a `TEST-*.xml` in the task's JUnit XML directory whose file name, `<testsuite>` name or test case
+  `classname` names it: Gradle shortens a file name that would be too long, with a hash in it,
+  and a class-level `@DisplayName` becomes the suite name. Otherwise the task fails and names the
+  classes:
+  `test: 2 of 3 test classes left no result, so the test JVM ended before they ran or they were
+  never run (System.exit?): org.example.BRunsTest, org.example.CExitTest`.
+- **Read when the task has run.** A test task that sets `testClassesDirs` in its own `register`
+  block is checked against those directories (mystic-crypt-ui#699).
+- **Filters.** A class pattern the build sets (`filter { includeTestsMatching 'org.example.*' }`)
+  narrows the expected classes. A run narrowed on the command line (`--tests`), or by a pattern
+  whose last part names a method, is not checked, and says so:
+  `test: narrowed by a filter, not checked for missing results`.
+- **No test classes.** A task without test classes and without results says so and passes. A task
+  with results but no class the check recognises fails, because it cannot tell.
+- **Configuration cache.** The check refers to no project, so the configuration cache stores it
+  and reuses it.
+
+When every class left a result, the task says how many it checked:
+`test: all 3 test classes left a result`.
+
+A class that is known to leave no result (the original's example: TestNG writes none for a class
+whose every test has `enabled = false`) is declared in the build script, with its reason. The line may stand anywhere in
+the build script, before or after the `plugins` block has applied the plugin:
+
+```groovy
+ext.testClassesWithoutResult = ['org.example.SomeTest': 'every test has enabled = false']
+```
+
+The task then names it with its reason, and counts it apart:
+`test: org.example.SomeTest leaves no result, as declared: every test has enabled = false`,
+`test: all 2 test classes left a result, 1 declared without one`.
+
+It comes from mystic-crypt-ui's `gradle/test-results-complete.gradle` (mystic-crypt-ui#699), whose
+copies the family's repositories carry. The check needs none of the tools that `own-display` needs.
 
 ## Building it
 

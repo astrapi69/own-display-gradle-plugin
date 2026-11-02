@@ -41,6 +41,14 @@ gradlePlugin {
             displayName = 'own-display'
             description = "$projectDescription"
         }
+        testResultsComplete {
+            id = 'io.github.astrapi69.test-results-complete'
+            implementationClass = 'io.github.astrapi69.test.results.complete.TestResultsCompletePlugin'
+            displayName = 'test-results-complete'
+            description = "After each test task, every compiled test class must have left a result in the task's " +
+                "JUnit XML, or the build fails and names the classes: a test that ends the test JVM with " +
+                "System.exit can no longer end the task green over classes that never ran"
+        }
     }
 }
 

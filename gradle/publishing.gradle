@@ -1,7 +1,8 @@
 // Publishing to Maven Central through the Central Portal, as resourcebundle-core and crypt-api do it
-// (nmcp). java-gradle-plugin creates two publications: the plugin itself (pluginMaven) and the
-// marker that lets a build find it by its id (ownDisplayPluginMarkerMaven). Central validates every
-// POM it receives, so both carry the full metadata, and both are signed.
+// (nmcp). java-gradle-plugin creates the plugin's publication (pluginMaven) and, for each plugin id,
+// a marker that lets a build find it by that id (ownDisplayPluginMarkerMaven,
+// testResultsCompletePluginMarkerMaven, #11). Central validates every POM it receives, so all of
+// them carry the full metadata, and all of them are signed.
 def releaseVersion = !version.endsWith("SNAPSHOT")
 def repositoryUrl = "$projectScmProviderUrl$projectHolderUsername/$rootProject.name"
 def scmUrl = "scm:git:git@$projectScmProviderDomain:$projectHolderUsername/${rootProject.name}.git"
