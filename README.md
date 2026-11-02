@@ -33,6 +33,12 @@ pluginManagement {
 
 Nothing else is configured. Every `Test` task of the build is affected.
 
+Both plugin IDs are compiled for Java 25, so the build that applies one runs Gradle on Java 25 or
+later: Gradle 8.14.4 or a later 8.14 release, or Gradle 9.1.0 or later (#13). Measured on Java 25
+with the functional tests: 8.14.4, 8.14.6, 9.1.0, 9.7.0 and 9.8.2 load and run both plugins; 8.8,
+8.14 and 8.14.3 cannot compile a build script on Java 25, and 9.0.0 runs on it but cannot read class
+files of Java 25 (`Unsupported class file major version 69`), so it cannot load the plugins.
+
 ## What it does
 
 - **A display of the build's own.** The first test task that runs starts an Xvfb on a random free
@@ -79,8 +85,8 @@ plugins {
 }
 ```
 
-The `pluginManagement` block above applies to it as well. Nothing else is configured, and every
-`Test` task of the build is checked.
+The `pluginManagement` block and the Gradle versions above apply to it as well. Nothing else is
+configured, and every `Test` task of the build is checked.
 
 A test that ends the test JVM, with `System.exit(0)` as awt-extensions' `CloseWindow` does when
 its window is closed, leaves every class after it without a result, and Gradle still reports the
@@ -128,7 +134,7 @@ copies the family's repositories carry. The check needs none of the tools that `
 
 ## Building it
 
-JDK 17, as `.sdkmanrc` names it (`sdk env`), and the tools above, since the tests run the harness
+JDK 25, as `.sdkmanrc` names it (`sdk env`), and the tools above, since the tests run the harness
 for real:
 
 ```

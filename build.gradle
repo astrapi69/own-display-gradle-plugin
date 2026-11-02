@@ -61,7 +61,7 @@ tasks.withType(Test).configureEach {
     systemProperty 'functionalTestGradleVersions', functionalTestGradleVersions
     testLogging {
         events "failed"
-        exceptionFormat "full"
+        exceptionFormat = "full"
     }
 }
 

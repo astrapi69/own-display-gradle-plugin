@@ -4,6 +4,13 @@
 Version 1.0 (unreleased)
 -------------
 
+CHANGED:
+- both plugin IDs are compiled for Java 25, class file version 69, so a build that applies one runs Gradle on
+  Java 25: Gradle 8.14.4 or a later 8.14 release, or Gradle 9.1.0 or later, measured with the functional tests,
+  which run on 8.14.4 and 9.8.2. Gradle 9.0.0 runs on Java 25 but cannot load the plugins (#13)
+- the build runs on JDK 25 in every workflow and on Gradle 9.8.2, its wrapper jar checked against the published
+  sha256; a `.gitattributes` keeps the line endings of the wrapper scripts (#13)
+
 ADDED:
 - a second plugin ID, `io.github.astrapi69.test-results-complete`: after each test task, every concrete compiled
   class that refers to a JUnit Jupiter, JUnit 4 or TestNG test annotation must have left a result in the task's

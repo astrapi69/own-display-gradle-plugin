@@ -1,3 +1,4 @@
-# The JDK this repository builds with, and the oldest a consumer of the plugin runs on: the plugin is
-# compiled for Java 17. `sdk env` sets the shell to it, and the pre-commit hook runs Gradle on it (#1).
-java=17.0.20-tem
+# The JDK this repository builds with: the plugin is compiled for Java 25, so a consuming build runs
+# Gradle on Java 25 or later (#13). `sdk env` sets the shell to it, and the pre-commit hook runs Gradle
+# on it (#1).
+java=25.0.4-tem

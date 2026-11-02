@@ -376,8 +376,8 @@ class TestResultsCompletePluginFunctionalTest
 
 	/**
 	 * Gradle 8.8 does not shorten a result file name that is too long: it fails the task with
-	 * "Could not write XML test results for ..." (measured on #11), so the case runs on the newest
-	 * version only
+	 * "Could not write XML test results for ..." (measured on #11), and neither do 8.14.4, 8.14.6
+	 * and 9.1.0 (measured on #13), so the case runs on the newest version only
 	 */
 	static Stream<String> newestGradleVersionOnly()
 	{

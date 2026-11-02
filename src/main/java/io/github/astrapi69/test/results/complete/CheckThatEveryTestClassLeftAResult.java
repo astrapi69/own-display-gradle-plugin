@@ -135,9 +135,9 @@ final class CheckThatEveryTestClassLeftAResult implements Action<Task>
 
 	/**
 	 * The patterns of {@code --tests}. {@link TestFilter} has no public getter for them, Gradle's
-	 * own filter has one (the internal {@code DefaultTestFilter}, in 8.8 as in 9.7.1), and it is
-	 * read the way the Groovy original reached it, by name. A filter without it stops the check
-	 * rather than letting it guess.
+	 * own filter has one (the internal {@code DefaultTestFilter}, in 8.8, 8.14.4, 9.7.1 and 9.8.2),
+	 * and it is read the way the Groovy original reached it, by name. A filter without it stops the
+	 * check rather than letting it guess.
 	 */
 	private static Collection<?> commandLineIncludePatterns(Test test)
 	{
