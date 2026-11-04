@@ -67,7 +67,7 @@ tasks.withType(Test).configureEach {
         .withPathSensitivity(PathSensitivity.RELATIVE)
     testLogging {
         events "failed"
-        exceptionFormat "full"
+        exceptionFormat = "full"
     }
 }
 

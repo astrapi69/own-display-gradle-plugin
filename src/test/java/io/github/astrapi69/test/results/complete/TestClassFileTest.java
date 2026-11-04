@@ -198,7 +198,7 @@ class TestClassFileTest
 		Files.createDirectories(classes.toPath());
 		Files.writeString(sourceFile.toPath(), source, StandardCharsets.UTF_8);
 		JavaCompiler compiler = ToolProvider.getSystemJavaCompiler();
-		int exitCode = compiler.run(null, null, null, "--release", "17", "-proc:none", "-d",
+		int exitCode = compiler.run(null, null, null, "--release", "25", "-proc:none", "-d",
 			classes.getPath(), "-classpath", System.getProperty("java.class.path"),
 			sourceFile.getPath());
 		assertEquals(0, exitCode, "javac on " + className);

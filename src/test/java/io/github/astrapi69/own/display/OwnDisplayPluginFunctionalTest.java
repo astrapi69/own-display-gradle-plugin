@@ -50,9 +50,9 @@ import org.junit.jupiter.params.provider.MethodSource;
 
 /**
  * Runs the plugin the way a consuming repository does: in a Gradle build of its own, through
- * TestKit, on every Gradle version in {@code functionalTestGradleVersions} - the oldest and the
- * newest the family's repositories use (astrapi69/mystic-crypt-ui#599) - and asks which display the
- * build's test JVMs got.
+ * TestKit, on every Gradle version in {@code functionalTestGradleVersions} - the oldest that runs
+ * on Java 25 and loads the plugin, and the current one (#13) - and asks which display the build's
+ * test JVMs got.
  * <p>
  * <b>No test here opens a window.</b> The consumer's one test writes down the environment its JVM
  * was started with and waits, so that a wrong display is recorded, never drawn on. The consumer
