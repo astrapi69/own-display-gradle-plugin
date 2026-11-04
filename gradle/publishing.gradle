@@ -3,15 +3,20 @@
 // a marker that lets a build find it by that id (ownDisplayPluginMarkerMaven,
 // testResultsCompletePluginMarkerMaven, #11). Central validates every POM it receives, so all of
 // them carry the full metadata, and all of them are signed.
+// A marker's name and description are its plugin's: java-gradle-plugin gives it the display name and
+// the description of its gradlePlugin entry as conventions, which a value set here would override, as
+// the project's own once did for both markers (#14). Every other publication carries the project's.
 def releaseVersion = !version.endsWith("SNAPSHOT")
 def repositoryUrl = "$projectScmProviderUrl$projectHolderUsername/$rootProject.name"
 def scmUrl = "scm:git:git@$projectScmProviderDomain:$projectHolderUsername/${rootProject.name}.git"
 
 publishing {
-    publications.withType(MavenPublication).configureEach {
+    publications.withType(MavenPublication).configureEach { publication ->
         pom {
-            name = "$rootProject.name"
-            description = "$projectDescription"
+            if (!publication.name.endsWith("PluginMarkerMaven")) {
+                name = "$rootProject.name"
+                description = "$projectDescription"
+            }
             url = repositoryUrl
             inceptionYear = "$projectInceptionYear"
             organization {
