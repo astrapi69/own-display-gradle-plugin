@@ -1,7 +1,7 @@
 ## Change log
 ----------------------
 
-Version 1.0 (unreleased)
+Version 1.0
 -------------
 
 CHANGED:
