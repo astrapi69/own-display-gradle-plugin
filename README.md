@@ -144,5 +144,5 @@ for real:
 The functional tests run a consumer build on every Gradle version in
 `functionalTestGradleVersions` (`gradle.properties`). No test opens a window.
 
-`git config core.hooksPath .githooks` once per clone: the hooks refuse a commit Spotless would
-format, and one that credits a non-human collaborator.
+`git config core.hooksPath .githooks` once per clone: the hook refuses a commit Spotless would
+format.
